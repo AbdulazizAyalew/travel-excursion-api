@@ -13,6 +13,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@prisma/client": "^7.8.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "dotenv-safe": "^9.1.0",
@@ -21,10 +22,14 @@
     "morgan": "^1.10.1"
   },
   "devDependencies": {
+    "@types/node": "^25.9.0",
     "eslint": "^10.4.0",
     "eslint-config-prettier": "^10.1.8",
     "nodeman": "^1.1.2",
     "nodemon": "^3.1.14",
-    "prettier": "^3.8.3"
+    "prettier": "^3.8.3",
+    "prisma": "^7.8.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
   }
 }
