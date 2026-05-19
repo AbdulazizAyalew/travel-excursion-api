@@ -1,0 +1,30 @@
+{
+  "name": "travel_excursion_api",
+  "version": "1.0.0",
+  "description": "A travel excursion booking API with authentication, destination management, reservations, and reviews.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "dotenv-safe": "^9.1.0",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "morgan": "^1.10.1"
+  },
+  "devDependencies": {
+    "eslint": "^10.4.0",
+    "eslint-config-prettier": "^10.1.8",
+    "nodeman": "^1.1.2",
+    "nodemon": "^3.1.14",
+    "prettier": "^3.8.3"
+  }
+}
