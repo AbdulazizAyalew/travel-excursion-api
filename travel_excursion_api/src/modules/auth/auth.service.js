@@ -9,8 +9,9 @@ const {
 } = require("../../utils/token.utils");
 
 const register = async ({ name, email, password }) => {
+  lowercase_email = email.toLowerCase();
   const existingUser = await prisma.user.findUnique({
-    where: { email },
+    where: { email: lowercase_email },
   });
 
   if (existingUser) {
@@ -24,7 +25,7 @@ const register = async ({ name, email, password }) => {
   const user = await prisma.user.create({
     data: {
       name,
-      email,
+      email: lowercase_email,
       password: hashedPassword,
     },
     select: {
@@ -43,8 +44,9 @@ const register = async ({ name, email, password }) => {
 };
 
 const login = async ({ email, password }) => {
+  const lower_case_email = email.toLowerCase();
   const user = await prisma.user.findUnique({
-    where: { email },
+    where: { email:lower_case_email },
   });
 
   if (!user) {
