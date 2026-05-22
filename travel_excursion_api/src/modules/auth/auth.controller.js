@@ -1,4 +1,4 @@
-const { register, login } = require("./auth.service");
+const { register, login,refresh } = require("./auth.service");
 const { registerSchema, loginSchema } = require("./auth.validation");
 
 const registerController = async (req, res, next) => {
@@ -29,4 +29,20 @@ const loginController = async (req, res, next) => {
   }
 };
 
-module.exports = { registerController, loginController };
+const refreshController = async (req,res,next) => {
+  try {
+    const {refreshToken} = req.body;
+    const tokens = await refresh(refreshToken);
+
+    res.status(200).json({
+      success: true,
+      message: "Token refreshed successfully",
+      data: tokens,
+    });
+
+  } catch (error){
+    next(error);
+  }
+}
+
+module.exports = { registerController, loginController, refreshController };
