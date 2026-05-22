@@ -1,5 +1,5 @@
 const express = require("express");
-const { registerController, loginController } = require("./auth.controller");
+const { registerController, loginController, refreshController } = require("./auth.controller");
 
 const router = express.Router();
 
@@ -16,6 +16,7 @@ const router = express.Router();
  * /api/auth/register:
  *   post:
  *     summary: Register a new user
+ *     description: Creates a new user account and returns JWT Tokens.
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -30,10 +31,10 @@ const router = express.Router();
  *             properties:
  *               name:
  *                 type: string
- *                 example: Demissew Damte
+ *                 example: Abdulaziz Ayalew
  *               email:
  *                 type: string
- *                 example: Demssew@damte.com
+ *                 example: abdulaziz@gmail.com
  *               password:
  *                 type: string
  *                 example: 12345678pass.
@@ -67,7 +68,7 @@ router.post("/register", registerController);
  *             properties:
  *               email:
  *                 type: string
- *                 example: Demissew@damte.com
+ *                 example: abdulaziz@gmail.com
  *               password:
  *                 type: string
  *                 example: 123456.
@@ -80,5 +81,35 @@ router.post("/register", registerController);
  *         description: Validation error
  */
 router.post("/login", loginController);
+
+
+/**
+ * @swagger
+ * /api/auth/refresh-token:
+ *   post:
+ *     summary: Refresh access token
+ *     tags: [Auth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refreshToken
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *     responses:
+ *       200:
+ *         description: New access token issued successfully
+ *       400:
+ *         description: Refresh token is required
+ *       401:
+ *         description: Invalid, expired or already used refresh token
+ */
+router.post("/refresh-token",refreshController);
 
 module.exports = router;

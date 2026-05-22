@@ -22,6 +22,11 @@ app.use(express.json());
 // Swagger Docs
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+app.get("/api-docs.json", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.send(swaggerSpec);
+});
+
 // To test the health of the app
 app.get("/", (req, res) => {
   res.json({ message: "Travel Excursion API is running" });
