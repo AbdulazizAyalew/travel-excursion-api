@@ -3,7 +3,9 @@ const prisma = require("../../config/prisma");
 const {
   generateAccessToken,
   generateRefreshToken,
+  refreshAccessToken
 } = require("../../utils/token.utils");
+
 
 const register = async ({ name, email, password }) => {
   const existingUser = await prisma.user.findUnique({
@@ -39,6 +41,7 @@ const register = async ({ name, email, password }) => {
   return { user, accessToken, refreshToken };
 };
 
+
 const login = async ({ email, password }) => {
   const user = await prisma.user.findUnique({
     where: { email },
@@ -66,4 +69,17 @@ const login = async ({ email, password }) => {
   return { user: userWithoutPassword, accessToken, refreshToken };
 };
 
-module.exports = { register, login };
+
+const refresh = async (refreshToken) => {
+  if (!refreshToken) {
+    const error = new Error("Refresh token is required");
+    error.status = 400;
+    throw error;
+  }
+
+  const { newAccessToken, newRefreshToken } = await refreshAccessToken(refreshToken);
+
+  return { accessToken: newAccessToken, refreshToken: newRefreshToken };
+};
+
+module.exports = {refresh, register, login };
