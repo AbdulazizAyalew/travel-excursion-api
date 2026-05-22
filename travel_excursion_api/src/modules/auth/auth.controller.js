@@ -1,4 +1,4 @@
-const { register, login,refresh } = require("./auth.service");
+const { register, login, refresh, forgotPassword, resetPassword,} = require("./auth.service");
 const { registerSchema, loginSchema } = require("./auth.validation");
 
 const registerController = async (req, res, next) => {
@@ -45,4 +45,40 @@ const refreshController = async (req,res,next) => {
   }
 }
 
-module.exports = { registerController, loginController, refreshController };
+
+
+const forgotPasswordController = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    await forgotPassword(email);
+
+    res.status(200).json({
+      success: true,
+      message: "If that email exists, a reset link has been sent",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const resetPasswordController = async (req, res, next) => {
+  try {
+    const { token, newPassword } = req.body;
+    await resetPassword(token, newPassword);
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  registerController,
+  loginController,
+  refreshController,
+  forgotPasswordController,
+  resetPasswordController,
+};

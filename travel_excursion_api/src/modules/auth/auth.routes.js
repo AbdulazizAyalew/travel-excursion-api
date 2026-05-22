@@ -1,5 +1,11 @@
 const express = require("express");
-const { registerController, loginController, refreshController } = require("./auth.controller");
+const {
+  registerController,
+  loginController,
+  refreshController,
+  forgotPasswordController,
+  resetPasswordController,
+} = require("./auth.controller");
 
 const router = express.Router();
 
@@ -111,5 +117,63 @@ router.post("/login", loginController);
  *         description: Invalid, expired or already used refresh token
  */
 router.post("/refresh-token",refreshController);
+
+/**
+ * @swagger
+ * /api/auth/forgot-password:
+ *   post:
+ *     summary: Request password reset
+ *     tags: [Auth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: abdulaziz@gmail.com
+ *     responses:
+ *       200:
+ *         description: Reset link sent if email exists
+ *       400:
+ *         description: Validation error
+ */
+router.post("/forgot-password", forgotPasswordController);
+
+/**
+ * @swagger
+ * /api/auth/reset-password:
+ *   post:
+ *     summary: Reset password using token
+ *     tags: [Auth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *               - newPassword
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 example: a3f8c2d1e9b4...
+ *               newPassword:
+ *                 type: string
+ *                 example: NewPassword123!
+ *     responses:
+ *       200:
+ *         description: Password reset successfully
+ *       400:
+ *         description: Invalid or expired token
+ */
+router.post("/reset-password", resetPasswordController);
 
 module.exports = router;
