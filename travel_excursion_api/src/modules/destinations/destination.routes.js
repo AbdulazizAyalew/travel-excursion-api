@@ -1,9 +1,13 @@
-const express = require("express");
 const {
   createDestinationController,
   updateDestinationController,
   deleteDestinationController,
+  getAllDestinationsController,
+  getDestinationByIdController,
 } = require("./destination.controller");
+
+const express = require("express");
+
 const {
   createDestinationSchema,
   updateDestinationSchema,
@@ -152,5 +156,74 @@ router.delete(
   authorizeAdmin,
   deleteDestinationController,
 );
+
+
+
+/**
+ * @swagger
+ * /api/destinations:
+ *   get:
+ *     summary: Get all destinations with search, filter and pagination
+ *     tags: [Destinations]
+ *     security: []
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by title or description
+ *         example: Bahirdar
+ *       - in: query
+ *         name: country
+ *         schema:
+ *           type: string
+ *         description: Filter by country
+ *         example: Ethiopia
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [newest, oldest, title_asc, title_desc]
+ *         description: Sort results
+ *         example: newest
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number
+ *         example: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Results per page
+ *         example: 10
+ *     responses:
+ *       200:
+ *         description: Destinations fetched successfully
+ */
+router.get("/", getAllDestinationsController);
+
+/**
+ * @swagger
+ * /api/destinations/{id}:
+ *   get:
+ *     summary: Get a single destination with its excursions
+ *     tags: [Destinations]
+ *     security: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Destination ID
+ *     responses:
+ *       200:
+ *         description: Destination fetched successfully
+ *       404:
+ *         description: Destination not found
+ */
+router.get("/:id", getDestinationByIdController);
 
 module.exports = router;
