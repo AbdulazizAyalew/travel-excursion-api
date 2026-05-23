@@ -1,3 +1,4 @@
+const destinationRoutes = require("./modules/destinations/destination.routes");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -32,6 +33,12 @@ app.get("/", (req, res) => {
   res.json({ message: "Travel Excursion API is running" });
 });
 
+// Image upload routes
+app.use("/uploads", express.static("uploads"));
+
+// Destination routes
+app.use("/api/destinations", destinationRoutes);
+
 
 // That handles the authentication routes
 app.use('/api/auth',authRoutes);
@@ -46,14 +53,22 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   
   //Zod Validation error 
-  if (err.name === "ZodError"){
+  if (err.name === "ZodError" && err.errors) {
     return res.status(400).json({
-      success:false,
-      message:'Validation Error',
+      success: false,
+      message: "Validation Error",
       errors: err.errors.map((e) => ({
-        field: e.path.join(''),
+        field: e.path.join(""),
         message: e.message,
       })),
+    });
+  }
+
+  // Multer error handler
+  if (err.name === "MulterError") {
+    return res.status(400).json({
+      success: false,
+      message: err.message, // "File too large", "Too many files" etc
     });
   }
 
