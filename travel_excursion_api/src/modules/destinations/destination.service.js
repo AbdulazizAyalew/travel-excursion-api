@@ -45,7 +45,7 @@ const updateDestination = async (id, { title, description, country, images }) =>
 
   return updated;
 
-};;
+};
 
 const deleteDestination = async (id) => {
   const existing = await prisma.destination.findUnique({ where: { id } });
