@@ -56,10 +56,3 @@ module.exports = {
   authorizeAdmin,
   authorizeTourGuide,
 };
-
-module.exports = {
-  authenticate,
-  authorizeAdmin,
-  authorizeTourGuide,
-  requireRole,
-};
