@@ -1,4 +1,5 @@
 const destinationRoutes = require("./modules/destinations/destination.routes");
+const excursionRoutes = require("./modules/excursions/excursion.routes");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -39,6 +40,7 @@ app.use("/uploads", express.static("uploads"));
 // Destination routes
 app.use("/api/destinations", destinationRoutes);
 
+app.use("/api/excursions", excursionRoutes);
 
 // That handles the authentication routes
 app.use('/api/auth',authRoutes);
