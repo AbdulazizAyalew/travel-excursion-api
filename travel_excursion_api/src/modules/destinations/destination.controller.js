@@ -2,12 +2,16 @@ const {
   createDestination,
   updateDestination,
   deleteDestination,
+  getAllDestinations,
+  getDestinationById,
 } = require("./destination.service");
+
 const fs = require("fs");
 const {
   createDestinationSchema,
   updateDestinationSchema,
 } = require("./destination.validation");
+const { success } = require("zod");
 
 
 const createDestinationController = async (req, res, next) => {
@@ -76,8 +80,59 @@ const deleteDestinationController = async (req, res, next) => {
   }
 };
 
+
+const getAllDestinationsController = async (req, res, next) => {
+  try {
+    const { search, country, sortBy, page, limit } = req.query;
+
+    const result = await getAllDestinations({
+      search,
+      country,
+      sortBy,
+      page,
+      limit,
+    });
+    console.log(result.destinations);
+
+    if (result.destinations.length != 0){
+      res.status(200).json({
+        success: true,
+        message: "Destinations fetched successfully",
+        data: result.destinations,
+        pagination: result.pagination,
+      });
+  }
+  else {
+    res.status(200).json(
+      {
+        message : "No result Found",
+      }
+    )
+  }
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getDestinationByIdController = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const destination = await getDestinationById(id);
+
+    res.status(200).json({
+      success: true,
+      message: "Destination fetched successfully",
+      data: destination,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createDestinationController,
   updateDestinationController,
   deleteDestinationController,
+  getAllDestinationsController,
+  getDestinationByIdController,
 };
