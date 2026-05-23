@@ -59,4 +59,86 @@ const deleteDestination = async (id) => {
   await prisma.destination.delete({ where: { id } });
 };
 
-module.exports = { createDestination, updateDestination, deleteDestination };
+
+const getAllDestinations = async ({ search, country, sortBy, page, limit }) => {
+  
+  const where = {};
+
+  // Search by title OR description
+  if (search) {
+    where.OR = [
+      { title: { contains: search, mode: "insensitive" } },
+      { description: { contains: search, mode: "insensitive" } },
+    ];
+  }
+
+  // Filter by country
+  if (country) {
+    where.country = { equals: country, mode: "insensitive" };
+  }
+
+
+  const orderBy = {};
+  if (sortBy === "newest") {
+    orderBy.createdAt = "desc";
+  } else if (sortBy === "oldest") {
+    orderBy.createdAt = "asc";
+  } else if (sortBy === "title_asc") {
+    orderBy.title = "asc";
+  } else if (sortBy === "title_desc") {
+    orderBy.title = "desc";
+  } else {
+    orderBy.createdAt = "desc"; // default → newest first
+  }
+
+  const pageNum = parseInt(page) || 1;
+  const limitNum = parseInt(limit) || 10;
+  const skip = (pageNum - 1) * limitNum;
+
+  
+  const [destinations, total] = await Promise.all([
+    prisma.destination.findMany({
+      where,
+      orderBy,
+      skip,
+      take: limitNum,
+    }),
+    prisma.destination.count({ where }),
+  ]);
+
+  return {
+    destinations,
+    pagination: {
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
+    },
+  };
+};
+
+const getDestinationById = async (id) => {
+  const destination = await prisma.destination.findUnique({
+    where: { id },
+    include: {
+      excursions: true, // include all excursions
+    },
+  });
+
+  if (!destination) {
+    const error = new Error("Destination not found");
+    error.status = 404;
+    throw error;
+  }
+
+  return destination;
+};
+
+module.exports = {
+  createDestination,
+  updateDestination,
+  deleteDestination,
+  getAllDestinations,
+  getDestinationById,
+};
+
