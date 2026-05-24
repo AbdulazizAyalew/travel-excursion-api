@@ -8,6 +8,7 @@ const authRoutes = require("./modules/auth/auth.routes");
 const { success } = require("zod");
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger");
+const packageRoutes = require("./modules/packages/package.routes");
 
 
 // I chose dotenv-safe because it will help us to debug errors by comparing .dotenv and .env and saves lots of debugging time
@@ -41,6 +42,8 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api/destinations", destinationRoutes);
 
 app.use("/api/excursions", excursionRoutes);
+
+app.use("/api/packages",packageRoutes);
 
 // That handles the authentication routes
 app.use('/api/auth',authRoutes);
