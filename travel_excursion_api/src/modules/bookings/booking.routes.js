@@ -59,7 +59,7 @@ router.post("/", authenticate, createBookingController);
 
 /**
  * @swagger
- * /api/bookings/me:
+ * /api/bookings/my:
  *   get:
  *     summary: Get current user bookings
  *     tags: [Bookings]
@@ -71,13 +71,14 @@ router.post("/", authenticate, createBookingController);
  *       401:
  *         description: Unauthorized
  */
-router.get("/me", authenticate, getUserBookingsController);
+router.get("/my", authenticate, getUserBookingsController);
 
 /**
  * @swagger
  * /api/bookings/{id}/cancel:
  *   patch:
  *     summary: Cancel a booking
+  *     description: Cancels the booking and restores the reserved seats. The booking is not permanently deleted; its status is changed to CANCELLED.
  *     tags: [Bookings]
  *     security:
  *       - bearerAuth: []
@@ -87,16 +88,19 @@ router.get("/me", authenticate, getUserBookingsController);
  *         required: true
  *         schema:
  *           type: string
+ *         description: Booking ID
  *     responses:
  *       200:
  *         description: Booking cancelled successfully
  *       400:
- *         description: Already cancelled
+ *         description: Booking is already cancelled
+ *       401:
+ *         description: Unauthorized 
  *       403:
- *         description: Not your booking
+ *         description: User cannot cancel another user's booking
  *       404:
  *         description: Booking not found
  */
-router.patch("/:id/cancel", authenticate, cancelBookingController);
+router.delete("/:id", authenticate, cancelBookingController);
 
 module.exports = router;
