@@ -108,35 +108,34 @@ const getUserBookings = async (userId) => {
 };
 
 const cancelBooking = async (bookingId, userId) => {
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-  });
-
-  if (!booking) {
-    const error = new Error("Booking not found");
-    error.status = 404;
-    throw error;
-  }
-
-  // Before we delete we need to check whether the one trying to delete is his own booking
-  if (booking.userId !== userId) {
-    const error = new Error("You can only cancel your own bookings");
-    error.status = 403;
-    throw error;
-  }
-
-  if (booking.status === "CANCELLED") {
-    const error = new Error("Booking is already cancelled");
-    error.status = 400;
-    throw error;
-  }
-
   await prisma.$transaction(async (tx) => {
+    const booking = await tx.booking.findUnique({
+      where: { id: bookingId },
+    });
+
+    if (!booking) {
+      const error = new Error("Booking not found");
+      error.status = 404;
+      throw error;
+    }
+
+    if (booking.userId !== userId) {
+      const error = new Error("You can only cancel your own bookings");
+      error.status = 403;
+      throw error;
+    }
+
+    if (booking.status === "CANCELLED") {
+      const error = new Error("Booking is already cancelled");
+      error.status = 400;
+      throw error;
+    }
+
     await tx.package.update({
       where: { id: booking.packageId },
       data: {
         availableSeats: {
-          increment: booking.participants, 
+          increment: booking.participants,
         },
       },
     });
