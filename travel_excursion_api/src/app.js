@@ -10,6 +10,7 @@ const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger");
 const packageRoutes = require("./modules/packages/package.routes");
 const bookingRoutes = require("./modules/bookings/booking.routes");
+const reviewRoutes = require("./modules/reviews/review.routes");
 
 
 // I chose dotenv-safe because it will help us to debug errors by comparing .dotenv and .env and saves lots of debugging time
@@ -39,6 +40,9 @@ app.get("/", (req, res) => {
 
 // Booking Routes
 app.use("/api/bookings",bookingRoutes);
+
+// Revieww Routes
+app.use("/api/reviews",reviewRoutes);
 
 // Image upload routes
 app.use("/uploads", express.static("uploads"));
