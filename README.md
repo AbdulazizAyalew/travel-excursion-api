@@ -1,6 +1,8 @@
-# travel-excursion-api
+# Travel & Excursion Booking API
 
-A RESTful backend API for a Travel & Excursion Booking platform. Users can browse destinations, book trips, and leave reviews. Admins manage tours and view dashboard analytics.
+A RESTful backend API for a Travel & Excursion Booking Platform.
+
+Users can browse destinations and packages, reserve seats, manage bookings, and leave package reviews. Admins can manage destinations, excursions, packages, and view dashboard analytics.
 
 ---
 
@@ -12,9 +14,10 @@ A RESTful backend API for a Travel & Excursion Booking platform. Users can brows
 | Framework | Express.js |
 | Database | PostgreSQL |
 | ORM | Prisma |
-| Authentication | JWT (access + refresh tokens) |
+| Authentication | JWT access + refresh tokens |
+| Validation | Zod |
+| File Upload | Multer |
 | Documentation | Swagger |
-| Containerization | Docker + Docker Compose |
 | Email | Nodemailer |
 | Rate Limiting | express-rate-limit |
 
@@ -23,60 +26,80 @@ A RESTful backend API for a Travel & Excursion Booking platform. Users can brows
 ## Features
 
 ### Authentication
-- Register & Login
-- JWT access token + refresh token
-- Forgot password & reset password
-- Role-based access control: **User**, **Tour Guide**, **Admin**
+- Register and login
+- JWT access token and refresh token
+- Refresh token rotation
+- Forgot password and reset password
+- Role-based access control for users and admins
 
-### Destination Management
-- Admin: create, update, delete destinations with images, pricing, schedule, available seats
-- Public: browse, search, filter (by category, country, price range), and sort destinations
+### Destinations
+- Public destination browsing
+- Search, filter, sort, and pagination
+- Admin destination CRUD
+- Image uploads for destinations
 
-### Booking System
-- Reserve seats with date and participant count selection
-- Atomic seat deduction to prevent overbooking
-- Concurrent request handling via database transactions
-- View and cancel bookings
-- Booking history per user
+### Excursions
+- Public single excursion details
+- Admin excursion CRUD
+- Image uploads for excursions
+
+### Packages
+- Public package details
+- Admin package CRUD
+- Package schedules, duration, price, and available seats
+
+### Bookings
+- Create bookings with participant count and start date
+- Prevent overbooking using Prisma transactions
+- Automatically reduce available seats
+- View user booking history
+- Cancel bookings and restore seats
 
 ### Reviews
-- Rate and comment on destinations
-- Only users with a confirmed booking can leave a review
-- One review per booking enforced
+- Users can review packages through confirmed bookings
+- One review per booking
+- Package reviews include average rating and total review count
 
 ### Admin Dashboard
 - Total bookings count
-- Monthly revenue breakdown
-- Top destinations by booking volume
-- Total registered users
+- Total registered users count
+- Monthly confirmed revenue
+- Top destinations by confirmed booking count
 
 ### Bonus Features
-- **Rate limiting** —> API-wide rate limiting via `express-rate-limit`
-- **Email notifications** —> Booking confirmation emails via Nodemailer
+- API rate limiting
+- Booking confirmation email
+- Password reset email
+- Development email logging when SMTP is not configured
 
 ---
 
 ## Project Structure
 
-```
+```txt
 travel-excursion-api/
-├── prisma/
-│   └── schema.prisma
-├── src/
-│   ├── config/          # DB, mailer, env config
-│   ├── middlewares/     # auth, role guard, rate limiter, error handler
-│   ├── modules/
-│   │   ├── auth/
-│   │   ├── destinations/
-│   │   ├── bookings/
-│   │   ├── reviews/
-│   │   └── admin/
-│   ├── utils/           # response helpers, token utils
-│   └── app.js
-├── .env.example
-├── docker-compose.yml
-├── Dockerfile
-└── swagger.yaml
+└── travel_excursion_api/
+    ├── prisma/
+    │   ├── schema.prisma
+    │   └── migrations/
+    ├── src/
+    │   ├── config/
+    │   ├── middlewares/
+    │   ├── modules/
+    │   │   ├── admin/
+    │   │   ├── auth/
+    │   │   ├── bookings/
+    │   │   ├── destinations/
+    │   │   ├── excursions/
+    │   │   ├── packages/
+    │   │   └── reviews/
+    │   ├── utils/
+    │   ├── app.js
+    │   └── server.js
+    ├── uploads/
+    ├── .env.example
+    ├── package.json
+    └── swagger.json
 ```
 
 ---
@@ -85,92 +108,157 @@ travel-excursion-api/
 
 ### Prerequisites
 
-- Node.js v18+
-- Docker & Docker Compose
-- PostgreSQL (or use Docker)
+Make sure you have:
+
+- Node.js installed
+- PostgreSQL installed and running locally
+- npm installed
+- Git installed
+
+---
+
+## Setup Instructions
 
 ### 1. Clone the repository
 
 ```bash
 git clone https://github.com/AbdulazizAyalew/travel-excursion-api.git
-cd travel-excursion-api
+cd travel-excursion-api/travel_excursion_api
 ```
 
-### 2. Set up environment variables
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Create environment file
 
 ```bash
 cp .env.example .env
 ```
 
-Fill in the values in `.env`:
+On Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+### 4. Configure `.env`
+
+Update `DATABASE_URL`, JWT secrets, and other values based on your local setup.
+
+Example:
 
 ```env
-# Server
-PORT=3000
+PORT=5000
 NODE_ENV=development
+DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/travel_excursion_db"
 
-# Database
-DATABASE_URL=postgresql://postgres:password@localhost:5432/travel_excursion_db #Will configure it to point to the Docker container later on
-
-# JWT
-JWT_ACCESS_SECRET=your_access_secret_here
-JWT_REFRESH_SECRET=your_refresh_secret_here
+JWT_ACCESS_SECRET=replace_with_strong_access_secret
+JWT_REFRESH_SECRET=replace_with_strong_refresh_secret
 JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
 
-# Password Reset
 RESET_TOKEN_EXPIRES_IN=1h
+FRONTEND_URL=http://localhost:5000
 
-# Email (Nodemailer)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_app_password
+SMTP_HOST=
+SMTP_PORT=
+SMTP_USER=
+SMTP_PASS=
 EMAIL_FROM=no-reply@travelexcursion.com
 ```
 
-### 3. Run with Docker
+In development, SMTP values can be left empty. Emails will be logged to the console.
+
+### 5. Run Prisma migrations
 
 ```bash
-docker-compose up --build
+npx prisma migrate dev
 ```
 
-The API will be available at `http://localhost:3000`
-
-### 4. Run locally (without Docker)
+### 6. Generate Prisma Client
 
 ```bash
-npm install
-npx prisma migrate dev
 npx prisma generate
+```
+
+### 7. Start the development server
+
+```bash
 npm run dev
+```
+
+The API will run at:
+
+```txt
+http://localhost:5000
 ```
 
 ---
 
 ## API Documentation
 
-Swagger UI is available at:
+Swagger UI:
 
+```txt
+http://localhost:5000/api-docs
 ```
-http://localhost:3000/api-docs
+
+Swagger JSON:
+
+```txt
+http://localhost:5000/api-docs.json
+```
+
+A generated Swagger export is also available in:
+
+```txt
+swagger.json
 ```
 
 ---
 
-## Database Schema
+## Postman
 
-```
-#I will put the ERD Diagram Here after I do the schema.prisma
+The Postman collection and environment are located in the `postman/` folder.
+
+Recommended environment variables:
+
+```txt
+base_url=http://localhost:5000
+access_token=
+refresh_token=
+admin_access_token=
+admin_refresh_token=
+destination_id=
+excursion_id=
+package_id=
+booking_id=
+review_id=
 ```
 
-**Core models:** `User` · `Destination` · `Booking` · `Review` · `RefreshToken` · `PasswordResetToken`
+Use `{{base_url}}` in all requests.
+
+For protected user routes, use:
+
+```txt
+Authorization: Bearer {{access_token}}
+```
+
+For admin routes, use:
+
+```txt
+Authorization: Bearer {{admin_access_token}}
+```
 
 ---
 
 ## API Endpoints Overview
 
 ### Auth
+
 | Method | Endpoint | Access |
 |---|---|---|
 | POST | `/api/auth/register` | Public |
@@ -180,6 +268,7 @@ http://localhost:3000/api-docs
 | POST | `/api/auth/reset-password` | Public |
 
 ### Destinations
+
 | Method | Endpoint | Access |
 |---|---|---|
 | GET | `/api/destinations` | Public |
@@ -188,7 +277,27 @@ http://localhost:3000/api-docs
 | PUT | `/api/destinations/:id` | Admin |
 | DELETE | `/api/destinations/:id` | Admin |
 
+### Excursions
+
+| Method | Endpoint | Access |
+|---|---|---|
+| GET | `/api/excursions/:id` | Public |
+| POST | `/api/excursions` | Admin |
+| PUT | `/api/excursions/:id` | Admin |
+| DELETE | `/api/excursions/:id` | Admin |
+
+### Packages
+
+| Method | Endpoint | Access |
+|---|---|---|
+| GET | `/api/packages/:id` | Public |
+| GET | `/api/packages/:id/reviews` | Public |
+| POST | `/api/packages` | Admin |
+| PUT | `/api/packages/:id` | Admin |
+| DELETE | `/api/packages/:id` | Admin |
+
 ### Bookings
+
 | Method | Endpoint | Access |
 |---|---|---|
 | POST | `/api/bookings` | User |
@@ -196,56 +305,55 @@ http://localhost:3000/api-docs
 | DELETE | `/api/bookings/:id` | User |
 
 ### Reviews
+
 | Method | Endpoint | Access |
 |---|---|---|
-| POST | `/api/reviews` | User (booked only) |
-| GET | `/api/destinations/:id/reviews` | Public |
+| POST | `/api/reviews` | User with confirmed booking |
 
-### Admin Dashboard
+### Admin Stats
+
 | Method | Endpoint | Access |
 |---|---|---|
 | GET | `/api/admin/stats/bookings` | Admin |
+| GET | `/api/admin/stats/users` | Admin |
 | GET | `/api/admin/stats/revenue` | Admin |
 | GET | `/api/admin/stats/top-destinations` | Admin |
-| GET | `/api/admin/stats/users` | Admin |
 
 ---
 
-## Running Tests
+## Email Behavior
+
+In development, emails are logged to the terminal when SMTP is not configured.
+
+To send real emails, configure:
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
+EMAIL_FROM=your_email@gmail.com
+```
+
+---
+
+## Docker
+
+Docker support will be added later. For now, run PostgreSQL locally and configure `DATABASE_URL` in `.env`.
+
+---
+
+## Useful Commands
 
 ```bash
-npm test
+npm run dev
+npx prisma migrate dev
+npx prisma generate
+npx prisma studio
 ```
 
 ---
 
-## Postman Collection
+## Status
 
-
-```
-# I will add the Postman collection after completion here
-```
-
----
-
-## Docker Setup
-
-```yaml
-# docker-compose.yml provisions:
-# - Node.js API (port 3000)
-# - PostgreSQL (port 5432)
-```
-
-```bash
-# Start all services
-docker-compose up --build
-
-# Stop all services
-docker-compose down
-
-# Reset database volumes
-docker-compose down -v
-```
-
----
-
+This project includes authentication, destination management, excursion management, package management, bookings, reviews, admin analytics, rate limiting, email notifications, Swagger docs, and Postman documentation.
