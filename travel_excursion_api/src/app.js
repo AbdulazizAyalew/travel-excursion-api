@@ -12,12 +12,21 @@ const packageRoutes = require("./modules/packages/package.routes");
 const bookingRoutes = require("./modules/bookings/booking.routes");
 const reviewRoutes = require("./modules/reviews/review.routes");
 const adminRoutes = require("./modules/admin/admin.routes");
+const {
+  generalLimiter,
+  authLimiter,
+} = require("./middlewares/rateLimit.middleware");
 
 
 // I chose dotenv-safe because it will help us to debug errors by comparing .dotenv and .env and saves lots of debugging time
 require("dotenv-safe").config();
 
 const app = express();
+// General API Limiter
+app.use("/api", generalLimiter);
+
+// This handles the authentication routes with authLimiter
+app.use("/api/auth", authLimiter, authRoutes);
 
 // Telling the app to use these middlewares
 app.use(helmet());
@@ -58,8 +67,7 @@ app.use("/api/excursions", excursionRoutes);
 
 app.use("/api/packages",packageRoutes);
 
-// That handles the authentication routes
-app.use('/api/auth',authRoutes);
+
 
 // This handles page that have no route 
 app.use((req, res) => {
