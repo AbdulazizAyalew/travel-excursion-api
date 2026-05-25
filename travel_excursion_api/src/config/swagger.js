@@ -7,7 +7,7 @@ const options = {
       title: "Travel & Excursion Booking API",
       version: "1.0.0",
       description:
-        "Backend API for a Travel and Excursion Booking Platform where users can browse destinations, book trips, and admins manage tours.",
+        "Backend API for a Travel and Excursion Booking Platform where users browse packages, book trips, leave reviews, and admins manage content.",
     },
     servers: [
       {
@@ -23,14 +23,139 @@ const options = {
           bearerFormat: "JWT",
         },
       },
-    },
-    security: [
-      {
-        bearerAuth: [],
+      schemas: {
+        SuccessResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: true,
+            },
+            message: {
+              type: "string",
+              example: "Request completed successfully",
+            },
+            data: {
+              type: "object",
+            },
+          },
+        },
+
+        ErrorResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: false,
+            },
+            message: {
+              type: "string",
+              example: "Something went wrong",
+            },
+          },
+        },
+
+        ValidationErrorResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: false,
+            },
+            message: {
+              type: "string",
+              example: "Validation error",
+            },
+          },
+        },
+
+        UnauthorizedResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: false,
+            },
+            message: {
+              type: "string",
+              example: "Access token missing or malformed",
+            },
+          },
+        },
+
+        ForbiddenResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: false,
+            },
+            message: {
+              type: "string",
+              example: "Access denied",
+            },
+          },
+        },
+
+        NotFoundResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: false,
+            },
+            message: {
+              type: "string",
+              example: "Resource not found",
+            },
+          },
+        },
+
+        ConflictResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: false,
+            },
+            message: {
+              type: "string",
+              example: "Resource already exists",
+            },
+          },
+        },
+
+        RateLimitResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: false,
+            },
+            message: {
+              type: "string",
+              example: "Too many requests, please try again later.",
+            },
+          },
+        },
+
+        ServerErrorResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: false,
+            },
+            message: {
+              type: "string",
+              example: "Internal server error",
+            },
+          },
+        },
       },
-    ],
+    },
   },
-  apis: ["./src/modules/**/*.routes.js"], // scans all route files
+  apis: ["./src/modules/**/*.routes.js"],
 };
 
 const swaggerSpec = swaggerJsdoc(options);

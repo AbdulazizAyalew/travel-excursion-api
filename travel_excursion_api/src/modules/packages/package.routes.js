@@ -27,6 +27,7 @@ const router = express.Router();
  *   get:
  *     summary: Get reviews for a package with average rating
  *     tags: [Reviews]
+ *     security: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -37,8 +38,28 @@ const router = express.Router();
  *     responses:
  *       200:
  *         description: Package reviews fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
  *       404:
  *         description: Package not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NotFoundResponse'
+ *       429:
+ *         description: Too many requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RateLimitResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ServerErrorResponse'
  */
 router.get("/:id/reviews", getPackageReviewsController);
 
@@ -47,7 +68,7 @@ router.get("/:id/reviews", getPackageReviewsController);
  * @swagger
  * /api/packages/{id}:
  *   get:
- *     summary: Get a single package with excursion package details
+ *     summary: Get a single package with excursion details
  *     tags: [Packages]
  *     security: []
  *     parameters:
@@ -56,11 +77,32 @@ router.get("/:id/reviews", getPackageReviewsController);
  *         required: true
  *         schema:
  *           type: string
+ *         description: Package ID
  *     responses:
  *       200:
  *         description: Package fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
  *       404:
  *         description: Package not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NotFoundResponse'
+ *       429:
+ *         description: Too many requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RateLimitResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ServerErrorResponse'
  */
 router.get("/:id", getPackageByIdController);
 
@@ -68,7 +110,8 @@ router.get("/:id", getPackageByIdController);
  * @swagger
  * /api/packages:
  *   post:
- *     summary: Create a new package (Admin only)
+ *     summary: Create a new package
+ *     description: Admin only.
  *     tags: [Packages]
  *     security:
  *       - bearerAuth: []
@@ -88,31 +131,65 @@ router.get("/:id", getPackageByIdController);
  *             properties:
  *               excursionId:
  *                 type: string
- *                 example: uuid-here
+ *                 example: "excursion-uuid-here"
  *               title:
  *                 type: string
- *                 example: Premium Safari Package
+ *                 example: "Premium Safari Package"
  *               price:
- *                 type: string
+ *                 type: number
  *                 example: 299.99
  *               duration:
  *                 type: string
- *                 example: 3 days
+ *                 example: "3 Days"
  *               schedule:
  *                 type: string
- *                 example: Every Monday and Friday
+ *                 example: "Every Monday"
  *               availableSeats:
- *                 type: string
+ *                 type: integer
  *                 example: 20
  *     responses:
  *       201:
  *         description: Package created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
  *       400:
  *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedResponse'
  *       403:
  *         description: Admins only
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ForbiddenResponse'
  *       404:
  *         description: Excursion not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NotFoundResponse'
+ *       429:
+ *         description: Too many requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RateLimitResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ServerErrorResponse'
  */
 router.post("/", authenticate, authorizeAdmin, createPackageController);
 
@@ -120,7 +197,8 @@ router.post("/", authenticate, authorizeAdmin, createPackageController);
  * @swagger
  * /api/packages/{id}:
  *   put:
- *     summary: Update a package (Admin only)
+ *     summary: Update a package
+ *     description: Admin only.
  *     tags: [Packages]
  *     security:
  *       - bearerAuth: []
@@ -130,7 +208,9 @@ router.post("/", authenticate, authorizeAdmin, createPackageController);
  *         required: true
  *         schema:
  *           type: string
+ *         description: Package ID
  *     requestBody:
+ *       required: false
  *       content:
  *         application/json:
  *           schema:
@@ -139,20 +219,56 @@ router.post("/", authenticate, authorizeAdmin, createPackageController);
  *               title:
  *                 type: string
  *               price:
- *                 type: string
+ *                 type: number
  *               duration:
  *                 type: string
  *               schedule:
  *                 type: string
  *               availableSeats:
- *                 type: string
+ *                 type: integer
  *     responses:
  *       200:
  *         description: Package updated successfully
- *       404:
- *         description: Package not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedResponse'
  *       403:
  *         description: Admins only
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ForbiddenResponse'
+ *       404:
+ *         description: Package not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NotFoundResponse'
+ *       429:
+ *         description: Too many requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RateLimitResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ServerErrorResponse'
  */
 router.put("/:id", authenticate, authorizeAdmin, updatePackageController);
 
@@ -160,7 +276,8 @@ router.put("/:id", authenticate, authorizeAdmin, updatePackageController);
  * @swagger
  * /api/packages/{id}:
  *   delete:
- *     summary: Delete a package (Admin only)
+ *     summary: Delete a package
+ *     description: Admin only.
  *     tags: [Packages]
  *     security:
  *       - bearerAuth: []
@@ -170,13 +287,44 @@ router.put("/:id", authenticate, authorizeAdmin, updatePackageController);
  *         required: true
  *         schema:
  *           type: string
+ *         description: Package ID
  *     responses:
  *       200:
  *         description: Package deleted successfully
- *       404:
- *         description: Package not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedResponse'
  *       403:
  *         description: Admins only
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ForbiddenResponse'
+ *       404:
+ *         description: Package not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NotFoundResponse'
+ *       429:
+ *         description: Too many requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RateLimitResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ServerErrorResponse'
  */
 router.delete("/:id", authenticate, authorizeAdmin, deletePackageController);
 

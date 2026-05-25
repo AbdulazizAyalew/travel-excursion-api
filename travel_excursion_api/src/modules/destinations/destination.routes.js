@@ -31,7 +31,8 @@ const router = express.Router();
  * @swagger
  * /api/destinations:
  *   post:
- *     summary: Create a new destination (Admin only)
+ *     summary: Create a destination
+ *     description: Admin only. Supports uploading up to 5 images.
  *     tags: [Destinations]
  *     security:
  *       - bearerAuth: []
@@ -48,14 +49,13 @@ const router = express.Router();
  *             properties:
  *               title:
  *                 type: string
- *                 example: Ethiopia
+ *                 example: "Bahir Dar"
  *               description:
  *                 type: string
- *                 example: Ethiopia | The Land of origins
+ *                 example: "A beautiful city near Lake Tana."
  *               country:
  *                 type: string
- *                 example: Ethiopia
- *                 description: Must be a valid country name (e.g. Ethiopia, Greece, France)
+ *                 example: "Ethiopia"
  *               images:
  *                 type: array
  *                 items:
@@ -64,14 +64,41 @@ const router = express.Router();
  *     responses:
  *       201:
  *         description: Destination created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
  *       400:
  *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
  *       401:
  *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedResponse'
  *       403:
  *         description: Admins only
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ForbiddenResponse'
+ *       429:
+ *         description: Too many requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RateLimitResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ServerErrorResponse'
  */
-
 router.post(
   "/",
   authenticate, 
@@ -85,7 +112,8 @@ router.post(
  * @swagger
  * /api/destinations/{id}:
  *   put:
- *     summary: Update a destination (Admin only)
+ *     summary: Update a destination
+ *     description: Admin only. Supports appending new uploaded images.
  *     tags: [Destinations]
  *     security:
  *       - bearerAuth: []
@@ -95,7 +123,9 @@ router.post(
  *         required: true
  *         schema:
  *           type: string
+ *         description: Destination ID
  *     requestBody:
+ *       required: false
  *       content:
  *         multipart/form-data:
  *           schema:
@@ -115,12 +145,47 @@ router.post(
  *     responses:
  *       200:
  *         description: Destination updated successfully
- *       404:
- *         description: Destination not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedResponse'
  *       403:
  *         description: Admins only
-*/
-
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ForbiddenResponse'
+ *       404:
+ *         description: Destination not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NotFoundResponse'
+ *       429:
+ *         description: Too many requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RateLimitResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ServerErrorResponse'
+ */
 router.put(
   "/:id",
   authenticate,
@@ -128,11 +193,13 @@ router.put(
   upload.array("images", 5),
   updateDestinationController,
 );
+
 /**
  * @swagger
  * /api/destinations/{id}:
  *   delete:
- *     summary: Delete a destination (Admin only)
+ *     summary: Delete a destination
+ *     description: Admin only.
  *     tags: [Destinations]
  *     security:
  *       - bearerAuth: []
@@ -142,13 +209,44 @@ router.put(
  *         required: true
  *         schema:
  *           type: string
+ *         description: Destination ID
  *     responses:
  *       200:
  *         description: Destination deleted successfully
- *       404:
- *         description: Destination not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedResponse'
  *       403:
  *         description: Admins only
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ForbiddenResponse'
+ *       404:
+ *         description: Destination not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NotFoundResponse'
+ *       429:
+ *         description: Too many requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RateLimitResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ServerErrorResponse'
  */
 router.delete(
   "/:id",
@@ -163,7 +261,7 @@ router.delete(
  * @swagger
  * /api/destinations:
  *   get:
- *     summary: Get all destinations with search, filter and pagination
+ *     summary: Get all destinations
  *     tags: [Destinations]
  *     security: []
  *     parameters:
@@ -172,35 +270,46 @@ router.delete(
  *         schema:
  *           type: string
  *         description: Search by title or description
- *         example: Bahirdar
  *       - in: query
  *         name: country
  *         schema:
  *           type: string
  *         description: Filter by country
- *         example: Ethiopia
  *       - in: query
- *         name: sortBy
+ *         name: sort
  *         schema:
  *           type: string
  *           enum: [newest, oldest, title_asc, title_desc]
- *         description: Sort results
- *         example: newest
+ *         description: Sort destinations
  *       - in: query
  *         name: page
  *         schema:
  *           type: integer
  *         description: Page number
- *         example: 1
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
- *         description: Results per page
- *         example: 10
+ *         description: Items per page
  *     responses:
  *       200:
  *         description: Destinations fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       429:
+ *         description: Too many requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RateLimitResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ServerErrorResponse'
  */
 router.get("/", getAllDestinationsController);
 
@@ -208,7 +317,7 @@ router.get("/", getAllDestinationsController);
  * @swagger
  * /api/destinations/{id}:
  *   get:
- *     summary: Get a single destination with its excursions
+ *     summary: Get a single destination
  *     tags: [Destinations]
  *     security: []
  *     parameters:
@@ -221,8 +330,28 @@ router.get("/", getAllDestinationsController);
  *     responses:
  *       200:
  *         description: Destination fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
  *       404:
  *         description: Destination not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NotFoundResponse'
+ *       429:
+ *         description: Too many requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RateLimitResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ServerErrorResponse'
  */
 router.get("/:id", getDestinationByIdController);
 

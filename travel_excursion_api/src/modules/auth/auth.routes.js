@@ -22,8 +22,8 @@ const router = express.Router();
  * /api/auth/register:
  *   post:
  *     summary: Register a new user
- *     description: Creates a new user account and returns JWT Tokens.
  *     tags: [Auth]
+ *     security: []
  *     requestBody:
  *       required: true
  *       content:
@@ -37,20 +37,46 @@ const router = express.Router();
  *             properties:
  *               name:
  *                 type: string
- *                 example: Abdulaziz Ayalew
+ *                 example: "Abdulaziz Ayalew"
  *               email:
  *                 type: string
- *                 example: abdulaziz@gmail.com
+ *                 format: email
+ *                 example: "abdulaziz@example.com"
  *               password:
  *                 type: string
- *                 example: 12345678pass.
+ *                 format: password
+ *                 example: "StrongPass123"
  *     responses:
  *       201:
  *         description: User registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
  *       400:
  *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
  *       409:
- *         description: Email already exists
+ *         description: Email already in use
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ConflictResponse'
+ *       429:
+ *         description: Too many requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RateLimitResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ServerErrorResponse'
  */
 router.post("/register", registerController);
 
@@ -60,8 +86,9 @@ router.post("/register", registerController);
  * @swagger
  * /api/auth/login:
  *   post:
- *     summary: Login a user
+ *     summary: Login user
  *     tags: [Auth]
+ *     security: []
  *     requestBody:
  *       required: true
  *       content:
@@ -74,17 +101,43 @@ router.post("/register", registerController);
  *             properties:
  *               email:
  *                 type: string
- *                 example: abdulaziz@gmail.com
+ *                 format: email
+ *                 example: "abdulaziz@example.com"
  *               password:
  *                 type: string
- *                 example: 123456.
+ *                 format: password
+ *                 example: "StrongPass123"
  *     responses:
  *       200:
- *         description: Login successful, returns tokens
- *       401:
- *         description: Invalid credentials
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
  *       400:
  *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
+ *       401:
+ *         description: Invalid email or password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedResponse'
+ *       429:
+ *         description: Too many authentication attempts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RateLimitResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ServerErrorResponse'
  */
 router.post("/login", loginController);
 
@@ -107,14 +160,38 @@ router.post("/login", loginController);
  *             properties:
  *               refreshToken:
  *                 type: string
- *                 example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *                 example: "jwt-refresh-token-here"
  *     responses:
  *       200:
- *         description: New access token issued successfully
+ *         description: Token refreshed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
  *       400:
  *         description: Refresh token is required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
  *       401:
- *         description: Invalid, expired or already used refresh token
+ *         description: Invalid or expired refresh token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedResponse'
+ *       429:
+ *         description: Too many authentication attempts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RateLimitResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ServerErrorResponse'
  */
 router.post("/refresh-token",refreshController);
 
@@ -122,7 +199,7 @@ router.post("/refresh-token",refreshController);
  * @swagger
  * /api/auth/forgot-password:
  *   post:
- *     summary: Request password reset
+ *     summary: Request password reset email
  *     tags: [Auth]
  *     security: []
  *     requestBody:
@@ -136,12 +213,33 @@ router.post("/refresh-token",refreshController);
  *             properties:
  *               email:
  *                 type: string
- *                 example: abdulaziz@gmail.com
+ *                 format: email
+ *                 example: "abdulaziz@example.com"
  *     responses:
  *       200:
- *         description: Reset link sent if email exists
+ *         description: Password reset email sent if account exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
  *       400:
  *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
+ *       429:
+ *         description: Too many authentication attempts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RateLimitResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ServerErrorResponse'
  */
 router.post("/forgot-password", forgotPasswordController);
 
@@ -149,7 +247,7 @@ router.post("/forgot-password", forgotPasswordController);
  * @swagger
  * /api/auth/reset-password:
  *   post:
- *     summary: Reset password using token
+ *     summary: Reset password with token
  *     tags: [Auth]
  *     security: []
  *     requestBody:
@@ -164,15 +262,36 @@ router.post("/forgot-password", forgotPasswordController);
  *             properties:
  *               token:
  *                 type: string
- *                 example: a3f8c2d1e9b4...
+ *                 example: "plain-reset-token-from-email"
  *               newPassword:
  *                 type: string
- *                 example: NewPassword123!
+ *                 format: password
+ *                 example: "NewStrongPass123"
  *     responses:
  *       200:
  *         description: Password reset successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
  *       400:
- *         description: Invalid or expired token
+ *         description: Invalid token or validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
+ *       429:
+ *         description: Too many authentication attempts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RateLimitResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ServerErrorResponse'
  */
 router.post("/reset-password", resetPasswordController);
 
