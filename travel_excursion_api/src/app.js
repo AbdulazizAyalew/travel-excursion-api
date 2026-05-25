@@ -22,11 +22,6 @@ const {
 require("dotenv-safe").config();
 
 const app = express();
-// General API Limiter
-app.use("/api", generalLimiter);
-
-// This handles the authentication routes with authLimiter
-app.use("/api/auth", authLimiter, authRoutes);
 
 // Telling the app to use these middlewares
 app.use(helmet());
@@ -34,6 +29,11 @@ app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
 
+// General API Limiter
+app.use("/api", generalLimiter);
+
+// This handles the authentication routes with authLimiter
+app.use("/api/auth", authLimiter, authRoutes);
 // Swagger Docs
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
