@@ -10,7 +10,7 @@ const {
   authorizeAdmin,
 } = require("../../middlewares/auth.middleware");
 
-const {durations} = require("./package.validation")
+const { getPackageReviewsController } = require("../reviews/review.controller");
 
 const router = express.Router();
 
@@ -20,6 +20,28 @@ const router = express.Router();
  *   name: Packages
  *   description: Package management
  */
+
+/**
+ * @swagger
+ * /api/packages/{id}/reviews:
+ *   get:
+ *     summary: Get reviews for a package with average rating
+ *     tags: [Reviews]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Package ID
+ *     responses:
+ *       200:
+ *         description: Package reviews fetched successfully
+ *       404:
+ *         description: Package not found
+ */
+router.get("/:id/reviews", getPackageReviewsController);
+
 
 /**
  * @swagger
